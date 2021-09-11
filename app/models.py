@@ -7,7 +7,7 @@ from sqlalchemy import (Column,
                         Date,
                         text,
                         )
-
+from sqlalchemy.sql import expression
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 Base = declarative_base()
 
 
-class UserAdmin(Base):
+class AdminUser(Base):
     __tablename__ = 'admin_users'
     id = Column(Integer, primary_key=True)
     email = Column(String(48), unique=True, nullable=False)
@@ -34,8 +34,8 @@ class UserAdmin(Base):
         return check_password_hash(self.password, password)
 
 
-class Register(Base):
-    __tablename__ = 'registers'
+class AdminRegistrationRequest(Base):
+    __tablename__ = 'admin_registration_requests'
 
     id = Column(Integer, primary_key=True)
     email = Column(String(48), unique=True, nullable=False)
@@ -55,8 +55,10 @@ class User(Base):
     external_id = Column(Integer, unique=True, nullable=True)
     first_name = Column(String(32), nullable=True)
     last_name = Column(String(32), nullable=True)
-    has_mailing = Column(Boolean, default=True)
+    has_mailing = Column(Boolean, default=False)
     date_registration = Column(DateTime, server_default=text('now()'), nullable=False)
+    external_signup_date = Column(DateTime, nullable=True)
+    banned = Column(Boolean, server_default=expression.false(), nullable=False)
 
     def __repr__(self):
         return f'<User {self.telegram_id}>'

@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from app.models import Register
+from app.models import AdminRegistrationRequest
 from flask import jsonify, make_response
 from flask_apispec import doc, use_kwargs
 from flask_apispec.views import MethodResource
 from flask_restful import Resource
 from marshmallow import fields
+from app.logger import app_logger as logger
 
 
 class InvitationChecker(MethodResource, Resource):
@@ -29,10 +30,11 @@ class InvitationChecker(MethodResource, Resource):
     @use_kwargs({'token': fields.Str()})
     def post(self, **kwargs):
         token = kwargs.get('token')
-        record = Register.query.filter_by(token=token).first()
+        record = AdminRegistrationRequest.query.filter_by(token=token).first()
 
         if not record or record.token_expiration_date < datetime.now():
+            logger.error(f"Invitation Checker: Token '{token}' not confirmed.")
             return make_response(jsonify(message="Приглашение не было найдено или просрочено. "
                                                  "Пожалуйста свяжитесь с своим системным администратором."), 403)
-
+        logger.info(f"Invitation Checker: Token '{token}' confirmed.")
         return make_response(jsonify(message='Токен подтвержден.'), 200)
